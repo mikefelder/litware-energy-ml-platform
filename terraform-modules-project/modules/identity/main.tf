@@ -1,0 +1,30 @@
+# Identity module - manages Azure AD resources
+
+# Create Azure AD Group
+resource "azuread_group" "ml_team" {
+  display_name     = var.team_group_name
+  security_enabled = true
+}
+
+# Create test users and add to group
+resource "random_password" "user_passwords" {
+  count            = var.user_count
+  length           = 16
+  special          = true
+  override_special = "!@#%&*"
+}
+
+resource "azuread_user" "ml_users" {
+  count                 = var.user_count
+  user_principal_name   = "mluser${count.index + 1}@${var.tenant_domain}"
+  display_name          = "ML User ${count.index + 1}"
+  mail_nickname         = "mluser${count.index + 1}"
+  password              = random_password.user_passwords[count.index].result
+  force_password_change = true
+}
+
+resource "azuread_group_member" "ml_team_members" {
+  count            = var.user_count
+  group_object_id  = azuread_group.ml_team.object_id
+  member_object_id = azuread_user.ml_users[count.index].object_id
+}
