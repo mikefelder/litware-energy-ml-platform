@@ -18,19 +18,19 @@ resource "azurerm_storage_account" "ml" {
 }
 
 resource "azurerm_storage_container" "datasets" {
-  name                 = "datasets"
-  storage_account_id   = azurerm_storage_account.ml.id
+  name                  = "datasets"
+  storage_account_id    = azurerm_storage_account.ml.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "models" {
-  name                 = "models"
-  storage_account_id   = azurerm_storage_account.ml.id
+  name                  = "models"
+  storage_account_id    = azurerm_storage_account.ml.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "notebooks" {
-  name                 = "notebooks"
-  storage_account_id   = azurerm_storage_account.ml.id
+  name                  = "notebooks"
+  storage_account_id    = azurerm_storage_account.ml.id
   container_access_type = "private"
 }

@@ -27,12 +27,34 @@ module "resource_group" {
   tags     = var.tags
 }
 
+# Create networking infrastructure
+module "networking" {
+  source              = "./modules/networking"
+  resource_group_name = module.resource_group.name
+  location           = var.location
+  environment        = "prod"
+  prefix             = local.name_prefix
+  tags               = var.tags
+
+  # Hub Network configuration (using defaults for subnets)
+  hub_vnet_address_space = "10.0.0.0/16"
+
+  # ML Services Network configuration
+  ml_services_vnet_address_space = "10.1.0.0/16"
+
+  # Data Services Network configuration
+  data_services_vnet_address_space = "10.2.0.0/16"
+
+  # Analytics Network configuration
+  analytics_vnet_address_space = "10.3.0.0/16"
+}
+
 module "storage" {
   source              = "./modules/storage"
   location            = var.location
   resource_group_name = module.resource_group.name
   environment         = "prod"
-  prefix             = local.name_prefix
+  prefix              = local.name_prefix
   tags                = var.tags
 }
 

@@ -9,6 +9,11 @@ variable "tenant_domain" {
   type        = string
 }
 
+variable "admin_email" {
+  description = "Email address for admin notifications"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type = object({
@@ -81,6 +86,12 @@ variable "enable_https_traffic_only" {
   description = "Forces HTTPS if enabled"
   type        = bool
   default     = true
+}
+
+variable "devops_project" {
+  description = "Name of the Azure DevOps project for Data Factory integration"
+  type        = string
+  default     = "LitwareEnergyML"
 }
 
 # RBAC variables
