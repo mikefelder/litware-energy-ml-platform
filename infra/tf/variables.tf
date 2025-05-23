@@ -34,9 +34,9 @@ variable "tags" {
 
 # Naming module variables
 variable "prefix" {
-  type        = list(string)
-  default     = []
-  description = "Resource name prefix. Not recommended by Azure - use suffix instead."
+  description = "Prefix to be used for all resources"
+  type        = string
+  default     = "litware"
 }
 
 variable "suffix" {
@@ -132,4 +132,22 @@ variable "user_password_special_chars" {
   description = "Special characters to use in test user passwords"
   type        = string
   default     = "!@#%&*"
+}
+
+variable "ai_services_location" {
+  description = "Azure region for AI Services. Defaults to East US as it has better AI model availability."
+  type        = string
+  default     = "eastus"
+}
+
+variable "ai_services_location_secondary" {
+  description = "Secondary Azure region for AI Services that support multi-region deployment"
+  type        = string
+  default     = "westus2"
+}
+
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "prod"
 }

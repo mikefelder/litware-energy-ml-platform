@@ -134,3 +134,31 @@ resource "azurerm_subnet" "analytics_subnets" {
     "Microsoft.AzureActiveDirectory"
   ] : []
 }
+
+# AI Services Virtual Network
+resource "azurerm_virtual_network" "ai_services" {
+  name                = "vnet-${var.prefix}-aiservices-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = var.ai_services_address_space
+  tags                = var.tags
+}
+
+# AI Services Subnets
+resource "azurerm_subnet" "ai_services_subnets" {
+  for_each             = { for subnet in var.ai_services_subnets : subnet.name => subnet }
+  name                 = each.value.name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.ai_services.name
+  address_prefixes     = [each.value.address_prefix]
+
+  # Service endpoints for AI services subnets
+  service_endpoints = contains(["AiServicesSubnet", "DocumentIntelligenceSubnet", "OpenAISubnet", "SearchSubnet", "StorageSubnet"], each.value.name) ? [
+    "Microsoft.Storage",
+    "Microsoft.KeyVault",
+    "Microsoft.CognitiveServices",
+    "Microsoft.AzureActiveDirectory"
+  ] : []
+  # Private endpoint network policies
+  private_endpoint_network_policies = each.value.name == "PrivateEndpointsSubnet" ? "Disabled" : "Enabled"
+}

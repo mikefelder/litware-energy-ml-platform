@@ -8,7 +8,7 @@ output "eventhub_sensor_data_id" {
   value       = azurerm_eventhub.sensor_data.id
 }
 
-output "datalake_id" {
+output "datalake_storage_account_id" {
   description = "ID of the Data Lake Storage account"
   value       = azurerm_storage_account.datalake.id
 }
