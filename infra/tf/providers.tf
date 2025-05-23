@@ -18,7 +18,13 @@ terraform {
 
 # Configure Azure RM provider
 provider "azurerm" {
-  features {}
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+  storage_use_azuread = true
 }
 
 # Configure Azure AD provider

@@ -1,43 +1,35 @@
-# Local values for resource naming and organization
-locals {
-  prefix                   = "litware"
-  core_networking_rg_name  = "rg-core-networking"
-  shared_services_rg_name  = "rg-shared-services"
-  ai_ml_foundation_rg_name = "rg-ai-ml-foundation"
-  data_ingestion_rg_name   = "rg-data-ingestion"
-  vignette_pred_maint_name = "rg-vignette-predictive-maintenance"
-  vignette_emissions_name  = "rg-vignette-emissions-tracking"
-  vignette_genai_name      = "rg-vignette-genai-fieldops"
-  vignette_trading_name    = "rg-vignette-trading-analytics"
-  environment              = "prod"
+# Configuration module
+module "config" {
+  source = "./modules/config"
 }
 
 # Data sources
-data "azurerm_client_config" "current" {}
+# Note: Moved the client_config data source to the identity module where it's most relevant
 
+# Foundation Resource Groups
 # Foundation Resource Groups
 module "rg_networking" {
   source   = "./modules/resource_group"
-  name     = local.core_networking_rg_name
+  name     = module.config.resource_group_names["core_networking"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 module "rg_shared" {
   source   = "./modules/resource_group"
-  name     = local.shared_services_rg_name
+  name     = module.config.resource_group_names["shared_services"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 # Networking
 module "networking" {
   source              = "./modules/networking"
-  prefix              = local.prefix
-  environment         = local.environment
+  prefix              = module.config.prefix
+  environment         = module.config.environment
   location            = var.location
   resource_group_name = module.rg_networking.name
-  tags                = var.tags
+  tags                = module.config.tags
 }
 
 # Identity (existing)
@@ -49,112 +41,206 @@ module "identity" {
 # Shared Services
 module "shared" {
   source                 = "./modules/shared"
-  prefix                 = local.prefix
-  environment            = local.environment
+  prefix                 = module.config.prefix
+  environment            = module.config.environment
   location               = var.location
   resource_group_name    = module.rg_shared.name
-  tags                   = var.tags
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  current_user_object_id = data.azurerm_client_config.current.object_id
+  tags                   = module.config.tags
   shared_subnet_id       = module.networking.subnet_ids["SharedServicesSubnet"]
   admin_email            = var.admin_email
+  tenant_id              = module.identity.tenant_id
+  current_user_object_id = module.identity.current_user_object_id
 }
 
 # AI/ML Foundation Resource Group
 module "rg_ai_ml" {
   source   = "./modules/resource_group"
-  name     = local.ai_ml_foundation_rg_name
+  name     = module.config.resource_group_names["ai_ml_foundation"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 # Data Ingestion Resource Group
 module "rg_data_ingestion" {
   source   = "./modules/resource_group"
-  name     = local.data_ingestion_rg_name
+  name     = module.config.resource_group_names["data_ingestion"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 # Vignette Resource Groups
 module "rg_predictive_maintenance" {
   source   = "./modules/resource_group"
-  name     = local.vignette_pred_maint_name
+  name     = module.config.resource_group_names["pred_maint"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 module "rg_emissions_tracking" {
   source   = "./modules/resource_group"
-  name     = local.vignette_emissions_name
+  name     = module.config.resource_group_names["emissions"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 module "rg_genai_fieldops" {
   source   = "./modules/resource_group"
-  name     = local.vignette_genai_name
+  name     = module.config.resource_group_names["genai"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 module "rg_trading_analytics" {
   source   = "./modules/resource_group"
-  name     = local.vignette_trading_name
+  name     = module.config.resource_group_names["trading"]
   location = var.location
-  tags     = var.tags
+  tags     = module.config.tags
 }
 
 # Data Ingestion
 module "data_ingestion" {
-  source              = "./modules/data_ingestion"
-  prefix              = local.prefix
-  environment         = local.environment
-  location            = var.location
-  resource_group_name = module.rg_data_ingestion.name
-  tags                = var.tags
-  subnet_id           = module.networking.subnet_ids["SharedServicesSubnet"]
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  devops_project      = var.devops_project
+  source                    = "./modules/data_ingestion"
+  prefix                    = module.config.prefix
+  environment               = module.config.environment
+  location                  = var.location
+  resource_group_name       = module.rg_data_ingestion.name
+  tags                      = module.config.tags
+  subnet_id                 = module.networking.subnet_ids["SharedServicesSubnet"]
+  tenant_id                 = module.identity.tenant_id
+  devops_project            = var.devops_project
+  private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
+  private_dns_zone_ids      = module.dns.private_dns_zone_ids
 }
 
 # AI/ML Foundation
 module "ai_ml_foundation" {
   source                  = "./modules/ai_ml_foundation"
-  prefix                  = local.prefix
-  environment             = local.environment
+  prefix                  = module.config.prefix
+  environment             = module.config.environment
   location                = var.location
   resource_group_name     = module.rg_ai_ml.name
-  tags                    = var.tags
+  tags                    = module.config.tags
   subnet_id               = module.networking.subnet_ids["SharedServicesSubnet"]
   key_vault_id            = module.shared.key_vault_id
   application_insights_id = module.shared.app_insights_id
+  private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
+  private_dns_zone_ids      = module.dns.private_dns_zone_ids
+}
+
+# AI Services Resource Group
+module "rg_ai_services" {
+  source   = "./modules/resource_group"
+  name     = "ai-services"
+  location = var.ai_services_location
+  tags     = module.config.tags
 }
 
 # RBAC Management
 module "rbac" {
   source = "./modules/rbac"
-
+  
+  # Resource Group Assignments
   resource_group_ids = {
-    networking         = module.rg_networking.id
-    shared             = module.rg_shared.id
-    ai_ml_foundation   = module.rg_ai_ml.id
-    data_ingestion     = module.rg_data_ingestion.id
-    pred_maintenance   = module.rg_predictive_maintenance.id
-    emissions_tracking = module.rg_emissions_tracking.id
-    genai_fieldops     = module.rg_genai_fieldops.id
-    trading_analytics  = module.rg_trading_analytics.id
+    "shared"            = module.rg_shared.id
+    "networking"        = module.rg_networking.id
+    "data_ingestion"    = module.rg_data_ingestion.id
+    "ai_ml_foundation"  = module.rg_ai_ml.id
+    "ai_services"       = module.rg_ai_services.id
   }
 
-  admin_group_object_id  = module.identity.ml_team_group_id
-  current_user_object_id = data.azurerm_client_config.current.object_id
-  storage_account_id     = "" # Will add after ML foundation deployment
-  workspace_id           = "" # Will add after ML foundation deployment
+  # Admin Group Config
+  admin_group_id          = module.identity.ml_team_group_id
+  current_user_object_id  = module.identity.current_user_object_id
+
+  # Storage Account IDs  
+  storage_account_id          = module.storage.storage_account_id
+  ml_storage_account_id       = module.ai_ml_foundation.storage_account_id
+  ai_storage_account_id       = module.ai_services.storage_account_id
+  datalake_storage_account_id = module.data_ingestion.datalake_storage_account_id
+
+  # ML Workspace Config
+  ml_workspace_ids = {
+    main = module.ai_ml_foundation.workspace_id
+  }
+  ml_workspace_principal_id = module.ai_ml_foundation.workspace_principal_id
+
+  depends_on = [
+    module.ai_ml_foundation,
+    module.storage,
+    module.ai_services,
+    module.data_ingestion
+  ]
 }
 
-# Outputs
-output "ml_users_credentials" {
-  value       = module.identity.ml_users_credentials
+# DNS Management Module
+module "dns" {
+  source              = "./modules/dns"
+  resource_group_name = module.rg_networking.name
+  ai_services_vnet_id = module.networking.ai_services_vnet_id
+  tags                = module.config.tags
+}
+
+# AI Services Module
+module "ai_services" {
+  source = "./modules/ai_services"
+  prefix                     = module.config.prefix
+  environment               = module.config.environment
+  location                  = var.ai_services_location
+  location_secondary        = var.ai_services_location_secondary
+  resource_group_name       = module.rg_ai_services.name
+  tags                      = module.config.tags
+  subnet_id                 = module.networking.subnet_ids["SharedServicesSubnet"]
+  private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
+  private_dns_zone_ids      = module.dns.private_dns_zone_ids
+
+  log_analytics_workspace_id = module.shared.log_analytics_workspace_id
+}
+
+# Deployment Information Module
+module "deployment_info" {
+  source               = "./modules/deployment_info"
+  ml_users_credentials = module.identity.ml_users_credentials
+  resource_group_ids   = {
+    networking         = module.rg_networking.id
+    shared            = module.rg_shared.id
+    ai_ml_foundation  = module.rg_ai_ml.id
+    data_ingestion    = module.rg_data_ingestion.id
+    pred_maintenance  = module.rg_predictive_maintenance.id
+    emissions_tracking = module.rg_emissions_tracking.id
+    genai_fieldops    = module.rg_genai_fieldops.id
+    trading_analytics = module.rg_trading_analytics.id
+  }
+  private_dns_zone_ids = module.dns.private_dns_zone_ids
+}
+
+# All outputs are now handled by the deployment_info module
+output "deployment_info" {
+  value = {
+    ml_users_credentials = module.deployment_info.ml_users_credentials
+    resource_group_ids   = module.deployment_info.resource_group_ids
+    private_dns_zone_ids = module.deployment_info.private_dns_zone_ids
+  }
+  description = "All deployment information consolidated in one output"
   sensitive   = true
-  description = "Initial credentials for POC ML users."
+}
+
+module "storage" {
+  source              = "./modules/storage"
+  prefix              = module.config.prefix
+  environment         = module.config.environment
+  location            = var.location
+  resource_group_name = module.rg_shared.name
+  tags                = module.config.tags
+  subnet_ids          = [
+    module.networking.subnet_ids["SharedServicesSubnet"],
+    module.networking.ml_services_subnet_ids["MlServicesSubnet"],
+    module.networking.data_services_subnet_ids["StorageSubnet"]
+  ]
+  private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
+  private_dns_zone_ids      = {
+    "blob"  = module.dns.private_dns_zone_ids["blob"]
+    "file"  = module.dns.private_dns_zone_ids["file"]
+    "queue" = module.dns.private_dns_zone_ids["queue"]
+    "table" = module.dns.private_dns_zone_ids["table"]
+  }
 }

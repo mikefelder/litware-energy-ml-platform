@@ -37,3 +37,13 @@ variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
 }
+
+variable "private_endpoint_subnet_id" {
+  description = "ID of the subnet for private endpoints"
+  type        = string
+}
+
+variable "private_dns_zone_ids" {
+  description = "Map of private DNS zone IDs for storage endpoints"
+  type        = map(string)
+}

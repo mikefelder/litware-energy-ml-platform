@@ -31,3 +31,19 @@ variable "prefix" {
   type        = string
   default     = "litware"
 }
+
+variable "subnet_ids" {
+  description = "List of subnet IDs that are allowed to access the storage account"
+  type        = list(string)
+  default     = []
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "ID of the subnet for private endpoints"
+  type        = string
+}
+
+variable "private_dns_zone_ids" {
+  description = "Map of private DNS zone IDs for storage endpoints"
+  type        = map(string)
+}

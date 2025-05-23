@@ -4,23 +4,55 @@ variable "resource_group_ids" {
   type        = map(string)
 }
 
-variable "admin_group_object_id" {
-  description = "Object ID of the Azure AD group to assign Contributor access"
+variable "admin_group_id" {
+  description = "Object ID of the Azure AD admin group to assign Contributor access"
   type        = string
 }
 
 variable "current_user_object_id" {
-  description = "Object ID of the current user"
+  description = "Object ID of the current user who will be assigned Owner access"
   type        = string
 }
 
-variable "workspace_id" {
-  description = "ID of the Machine Learning workspace"
+variable "network_admins_group_name" {
+  description = "Name for the network administrators AAD group that will manage private endpoints"
   type        = string
-  default     = "" # Make this optional since ML workspace might not exist yet
+  default     = "Litware-AIML-Team-network-admins"
 }
 
+variable "ml_workspace_ids" {
+  description = "Map of ML workspace names to their IDs for RBAC role assignments"
+  type        = map(string)
+  default     = {}
+}
+
+# Optional storage account variables
 variable "storage_account_id" {
-  description = "ID of the storage account"
+  description = "ID of the main storage account for data storage"
   type        = string
+  default     = null
+}
+
+variable "ml_storage_account_id" {
+  description = "ID of the ML workspace storage account for model artifacts"
+  type        = string
+  default     = null
+}
+
+variable "ai_storage_account_id" {
+  description = "ID of the AI services storage account for cognitive services data"
+  type        = string
+  default     = null
+}
+
+variable "datalake_storage_account_id" {
+  description = "ID of the data lake storage account for large-scale data storage"
+  type        = string
+  default     = null
+}
+
+variable "ml_workspace_principal_id" {
+  description = "The principal ID of the ML workspace managed identity"
+  type        = string
+  default     = null
 }

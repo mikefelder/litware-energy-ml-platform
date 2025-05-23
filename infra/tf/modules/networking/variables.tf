@@ -146,3 +146,43 @@ variable "analytics_subnets" {
     }
   ]
 }
+
+variable "ai_services_address_space" {
+  description = "Address space for AI Services VNet"
+  type        = list(string)
+  default     = ["10.4.0.0/16"]
+}
+
+variable "ai_services_subnets" {
+  description = "Subnets configuration for AI Services VNet"
+  type = list(object({
+    name           = string
+    address_prefix = string
+  }))
+  default = [
+    {
+      name           = "AiServicesSubnet"
+      address_prefix = "10.4.0.0/24"    # Main subnet for AI services
+    },
+    {
+      name           = "DocumentIntelligenceSubnet"
+      address_prefix = "10.4.1.0/24"    # For Document Intelligence services
+    },
+    {
+      name           = "OpenAISubnet"
+      address_prefix = "10.4.2.0/24"    # For OpenAI deployments
+    },
+    {
+      name           = "SearchSubnet"
+      address_prefix = "10.4.3.0/24"    # For Azure Search services
+    },
+    {
+      name           = "StorageSubnet"
+      address_prefix = "10.4.4.0/24"    # For Storage services
+    },
+    {
+      name           = "PrivateEndpointsSubnet"
+      address_prefix = "10.4.5.0/24"    # For private endpoints
+    }
+  ]
+}

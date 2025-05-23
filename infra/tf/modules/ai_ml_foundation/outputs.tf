@@ -17,3 +17,8 @@ output "compute_cluster_id" {
   description = "ID of the compute cluster"
   value       = azurerm_machine_learning_compute_cluster.compute.id
 }
+
+output "workspace_principal_id" {
+  description = "The principal ID of the ML workspace managed identity"
+  value       = azurerm_machine_learning_workspace.mlw.identity[0].principal_id
+}
