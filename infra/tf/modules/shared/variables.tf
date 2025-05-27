@@ -48,3 +48,8 @@ variable "admin_email" {
   description = "Email address for admin notifications"
   type        = string
 }
+
+variable "fabric_admin_members" {
+  description = "List of admin member object IDs for Fabric capacity"
+  type        = list(string)
+}

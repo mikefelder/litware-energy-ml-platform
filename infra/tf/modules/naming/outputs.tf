@@ -1,4 +1,3 @@
-
 output "unique-seed" {
   value = coalesce(var.unique-seed, local.random_safe_generation)
 }
@@ -449,6 +448,11 @@ output "express_route_circuit" {
 output "express_route_gateway" {
   value       = local.az.express_route_gateway
   description = "Express Route Gateway"
+}
+
+output "fabric_capacity" {
+  value       = local.az.fabric_capacity
+  description = "Fabric Capacity"
 }
 
 output "firewall" {

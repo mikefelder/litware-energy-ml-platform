@@ -9,7 +9,7 @@ module "naming" {
 
 # ML Storage Account
 resource "azurerm_storage_account" "ml" {
-  name                      = "${var.prefix}mlstg${var.environment}"
+  name                      = module.naming.storage_account.name
   resource_group_name       = var.resource_group_name
   location                  = var.location
   account_tier             = "Standard"

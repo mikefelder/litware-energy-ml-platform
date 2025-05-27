@@ -34,13 +34,93 @@ terraform.rc
 # Lock files
 .terraform.lock.hcl
 
+# Development/Template directories
+terraform-modules-project/
+
 # Local development environment files
 .env
 .env.local
+.env.*.local
 
 # IDE and editor files
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
 .idea/
 *.swp
 *.swo
 *~
+
+# Azure specific
+.azure/
+azurite/
+*.publishsettings
+*.pubxml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.ipynb_checkpoints
+.python-version
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# ML specific
+*.h5
+*.pkl
+*.model
+models/
+wandb/
+mlruns/
+outputs/
+runs/
+lightning_logs/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Secrets and keys
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.der

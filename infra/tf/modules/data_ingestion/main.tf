@@ -1,8 +1,15 @@
+# Common naming module for consistent naming
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.0"
+  suffix  = [var.environment]
+}
+
 # Data Ingestion Infrastructure
 
 # Event Hub Namespace
 resource "azurerm_eventhub_namespace" "main" {
-  name                = "evhns-${var.prefix}-${var.environment}"
+  name                = module.naming.eventhub_namespace.name
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "Standard"
@@ -24,7 +31,7 @@ resource "azurerm_eventhub" "sensor_data" {
 
 # Data Lake Storage Gen2
 resource "azurerm_storage_account" "datalake" {
-  name                            = "${var.prefix}dls${var.environment}"
+  name                            = module.naming.storage_account.name
   resource_group_name             = var.resource_group_name
   location                        = var.location
   account_tier                    = "Standard"
@@ -94,7 +101,7 @@ resource "azurerm_private_endpoint" "datalake_dfs" {
 
 # Service Bus Namespace
 resource "azurerm_servicebus_namespace" "main" {
-  name                = "sb-${var.prefix}-${var.environment}"
+  name                = module.naming.servicebus_namespace.name
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "Premium"
@@ -109,7 +116,7 @@ resource "azurerm_servicebus_namespace" "main" {
 
 # Data Factory
 resource "azurerm_data_factory" "main" {
-  name                   = "adf-${var.prefix}-${var.environment}"
+  name                   = module.naming.data_factory.name
   location               = var.location
   resource_group_name    = var.resource_group_name
   public_network_enabled = false

@@ -1,8 +1,15 @@
+# Common naming module for consistent naming
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.0"
+  suffix  = [var.environment]
+}
+
 # AI/ML Foundation Module
 # This module sets up core AI/ML infrastructure components
 
 resource "azurerm_machine_learning_workspace" "mlw" {
-  name                          = "${var.prefix}-mlw-${var.environment}"
+  name                          = module.naming.machine_learning_workspace.name
   location                      = var.location
   resource_group_name           = var.resource_group_name
   application_insights_id       = var.application_insights_id
@@ -19,13 +26,13 @@ resource "azurerm_machine_learning_workspace" "mlw" {
 }
 
 resource "azurerm_storage_account" "mlstorage" {
-  name                            = "${var.prefix}mlst${var.environment}"
+  name                            = module.naming.storage_account.name
   location                        = var.location
   resource_group_name             = var.resource_group_name
   account_tier                    = "Standard"
   account_replication_type        = "GRS"
   is_hns_enabled                  = false
-  min_tls_version                = "TLS1_2"
+  min_tls_version                 = "TLS1_2"
   shared_access_key_enabled       = false
   default_to_oauth_authentication = true
   public_network_access_enabled   = false
@@ -46,7 +53,7 @@ resource "azurerm_storage_account" "mlstorage" {
 }
 
 resource "azurerm_container_registry" "mlacr" {
-  name                          = "${var.prefix}mlacr${var.environment}"
+  name                          = module.naming.container_registry.name
   location                      = var.location
   resource_group_name           = var.resource_group_name
   sku                           = "Premium"
@@ -63,7 +70,7 @@ resource "azurerm_machine_learning_compute_cluster" "compute" {
   vm_priority                   = "Dedicated"
   vm_size                       = "Standard_DS3_v2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.mlw.id
-  subnet_resource_id           = var.subnet_id
+  subnet_resource_id            = var.subnet_id
 
   scale_settings {
     min_node_count                       = 0
@@ -86,12 +93,12 @@ resource "azurerm_private_endpoint" "mlstorage_blob" {
   private_service_connection {
     name                           = "psc-${azurerm_storage_account.mlstorage.name}-blob"
     private_connection_resource_id = azurerm_storage_account.mlstorage.id
-    is_manual_connection          = false
-    subresource_names            = ["blob"]
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
   }
 
   private_dns_zone_group {
-    name = "default"
+    name                 = "default"
     private_dns_zone_ids = [var.private_dns_zone_ids["blob"]]
   }
 
@@ -107,12 +114,12 @@ resource "azurerm_private_endpoint" "mlstorage_file" {
   private_service_connection {
     name                           = "psc-${azurerm_storage_account.mlstorage.name}-file"
     private_connection_resource_id = azurerm_storage_account.mlstorage.id
-    is_manual_connection          = false
-    subresource_names            = ["file"]
+    is_manual_connection           = false
+    subresource_names              = ["file"]
   }
 
   private_dns_zone_group {
-    name = "default"
+    name                 = "default"
     private_dns_zone_ids = [var.private_dns_zone_ids["file"]]
   }
 
@@ -128,12 +135,12 @@ resource "azurerm_private_endpoint" "mlstorage_queue" {
   private_service_connection {
     name                           = "psc-${azurerm_storage_account.mlstorage.name}-queue"
     private_connection_resource_id = azurerm_storage_account.mlstorage.id
-    is_manual_connection          = false
-    subresource_names            = ["queue"]
+    is_manual_connection           = false
+    subresource_names              = ["queue"]
   }
 
   private_dns_zone_group {
-    name = "default"
+    name                 = "default"
     private_dns_zone_ids = [var.private_dns_zone_ids["queue"]]
   }
 

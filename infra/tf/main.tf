@@ -7,7 +7,6 @@ module "config" {
 # Note: Moved the client_config data source to the identity module where it's most relevant
 
 # Foundation Resource Groups
-# Foundation Resource Groups
 module "rg_networking" {
   source   = "./modules/resource_group"
   name     = module.config.resource_group_names["core_networking"]
@@ -48,6 +47,7 @@ module "shared" {
   tags                   = module.config.tags
   shared_subnet_id       = module.networking.subnet_ids["SharedServicesSubnet"]
   admin_email            = var.admin_email
+  fabric_admin_members   = [var.admin_email] # Current user as admin
   tenant_id              = module.identity.tenant_id
   current_user_object_id = module.identity.current_user_object_id
 }
@@ -99,32 +99,32 @@ module "rg_trading_analytics" {
 
 # Data Ingestion
 module "data_ingestion" {
-  source                    = "./modules/data_ingestion"
-  prefix                    = module.config.prefix
-  environment               = module.config.environment
-  location                  = var.location
-  resource_group_name       = module.rg_data_ingestion.name
-  tags                      = module.config.tags
-  subnet_id                 = module.networking.subnet_ids["SharedServicesSubnet"]
-  tenant_id                 = module.identity.tenant_id
-  devops_project            = var.devops_project
+  source                     = "./modules/data_ingestion"
+  prefix                     = module.config.prefix
+  environment                = module.config.environment
+  location                   = var.location
+  resource_group_name        = module.rg_data_ingestion.name
+  tags                       = module.config.tags
+  subnet_id                  = module.networking.subnet_ids["SharedServicesSubnet"]
+  tenant_id                  = module.identity.tenant_id
+  devops_project             = var.devops_project
   private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
-  private_dns_zone_ids      = module.dns.private_dns_zone_ids
+  private_dns_zone_ids       = module.dns.private_dns_zone_ids
 }
 
 # AI/ML Foundation
 module "ai_ml_foundation" {
-  source                  = "./modules/ai_ml_foundation"
-  prefix                  = module.config.prefix
-  environment             = module.config.environment
-  location                = var.location
-  resource_group_name     = module.rg_ai_ml.name
-  tags                    = module.config.tags
-  subnet_id               = module.networking.subnet_ids["SharedServicesSubnet"]
-  key_vault_id            = module.shared.key_vault_id
-  application_insights_id = module.shared.app_insights_id
+  source                     = "./modules/ai_ml_foundation"
+  prefix                     = module.config.prefix
+  environment                = module.config.environment
+  location                   = var.location
+  resource_group_name        = module.rg_ai_ml.name
+  tags                       = module.config.tags
+  subnet_id                  = module.networking.subnet_ids["SharedServicesSubnet"]
+  key_vault_id               = module.shared.key_vault_id
+  application_insights_id    = module.shared.app_insights_id
   private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
-  private_dns_zone_ids      = module.dns.private_dns_zone_ids
+  private_dns_zone_ids       = module.dns.private_dns_zone_ids
 }
 
 # AI Services Resource Group
@@ -138,19 +138,19 @@ module "rg_ai_services" {
 # RBAC Management
 module "rbac" {
   source = "./modules/rbac"
-  
+
   # Resource Group Assignments
   resource_group_ids = {
-    "shared"            = module.rg_shared.id
-    "networking"        = module.rg_networking.id
-    "data_ingestion"    = module.rg_data_ingestion.id
-    "ai_ml_foundation"  = module.rg_ai_ml.id
-    "ai_services"       = module.rg_ai_services.id
+    "shared"           = module.rg_shared.id
+    "networking"       = module.rg_networking.id
+    "data_ingestion"   = module.rg_data_ingestion.id
+    "ai_ml_foundation" = module.rg_ai_ml.id
+    "ai_services"      = module.rg_ai_services.id
   }
 
   # Admin Group Config
-  admin_group_id          = module.identity.ml_team_group_id
-  current_user_object_id  = module.identity.current_user_object_id
+  admin_group_id         = module.identity.ml_team_group_id
+  current_user_object_id = module.identity.current_user_object_id
 
   # Storage Account IDs  
   storage_account_id          = module.storage.storage_account_id
@@ -182,43 +182,35 @@ module "dns" {
 
 # AI Services Module
 module "ai_services" {
-  source = "./modules/ai_services"
+  source                     = "./modules/ai_services"
   prefix                     = module.config.prefix
-  environment               = module.config.environment
-  location                  = var.ai_services_location
-  location_secondary        = var.ai_services_location_secondary
-  resource_group_name       = module.rg_ai_services.name
-  tags                      = module.config.tags
-  subnet_id                 = module.networking.subnet_ids["SharedServicesSubnet"]
+  environment                = module.config.environment
+  location                   = var.ai_services_location
+  location_secondary         = var.ai_services_location_secondary
+  resource_group_name        = module.rg_ai_services.name
+  tags                       = module.config.tags
+  subnet_id                  = module.networking.subnet_ids["SharedServicesSubnet"]
   private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
-  private_dns_zone_ids      = module.dns.private_dns_zone_ids
+  private_dns_zone_ids       = module.dns.private_dns_zone_ids
 
   log_analytics_workspace_id = module.shared.log_analytics_workspace_id
 }
 
-# Deployment Information Module
-module "deployment_info" {
-  source               = "./modules/deployment_info"
-  ml_users_credentials = module.identity.ml_users_credentials
-  resource_group_ids   = {
-    networking         = module.rg_networking.id
-    shared            = module.rg_shared.id
-    ai_ml_foundation  = module.rg_ai_ml.id
-    data_ingestion    = module.rg_data_ingestion.id
-    pred_maintenance  = module.rg_predictive_maintenance.id
-    emissions_tracking = module.rg_emissions_tracking.id
-    genai_fieldops    = module.rg_genai_fieldops.id
-    trading_analytics = module.rg_trading_analytics.id
-  }
-  private_dns_zone_ids = module.dns.private_dns_zone_ids
-}
-
-# All outputs are now handled by the deployment_info module
+# Single consolidated output for all deployment information
 output "deployment_info" {
   value = {
-    ml_users_credentials = module.deployment_info.ml_users_credentials
-    resource_group_ids   = module.deployment_info.resource_group_ids
-    private_dns_zone_ids = module.deployment_info.private_dns_zone_ids
+    ml_users_credentials = module.identity.ml_users_credentials,
+    resource_group_ids = {
+      networking         = module.rg_networking.id,
+      shared             = module.rg_shared.id,
+      ai_ml_foundation   = module.rg_ai_ml.id,
+      data_ingestion     = module.rg_data_ingestion.id,
+      pred_maintenance   = module.rg_predictive_maintenance.id,
+      emissions_tracking = module.rg_emissions_tracking.id,
+      genai_fieldops     = module.rg_genai_fieldops.id,
+      trading_analytics  = module.rg_trading_analytics.id
+    },
+    private_dns_zone_ids = module.dns.private_dns_zone_ids
   }
   description = "All deployment information consolidated in one output"
   sensitive   = true
@@ -231,13 +223,13 @@ module "storage" {
   location            = var.location
   resource_group_name = module.rg_shared.name
   tags                = module.config.tags
-  subnet_ids          = [
+  subnet_ids = [
     module.networking.subnet_ids["SharedServicesSubnet"],
     module.networking.ml_services_subnet_ids["MlServicesSubnet"],
     module.networking.data_services_subnet_ids["StorageSubnet"]
   ]
   private_endpoint_subnet_id = module.networking.ai_services_private_endpoints_subnet_id
-  private_dns_zone_ids      = {
+  private_dns_zone_ids = {
     "blob"  = module.dns.private_dns_zone_ids["blob"]
     "file"  = module.dns.private_dns_zone_ids["file"]
     "queue" = module.dns.private_dns_zone_ids["queue"]

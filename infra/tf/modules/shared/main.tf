@@ -2,7 +2,7 @@
 
 # Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "main" {
-  name                = "log-${var.prefix}-${var.environment}"
+  name                = module.naming.log_analytics_workspace.name
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "PerGB2018"
@@ -12,7 +12,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 # Key Vault
 resource "azurerm_key_vault" "main" {
-  name                = "kv-${var.prefix}-${var.environment}"
+  name                = module.naming.key_vault.name
   location            = var.location
   resource_group_name = var.resource_group_name
   tenant_id           = var.tenant_id
@@ -50,7 +50,7 @@ resource "azurerm_key_vault_access_policy" "current_user" {
 
 # Application Insights
 resource "azurerm_application_insights" "main" {
-  name                = "appi-${var.prefix}-${var.environment}"
+  name                = module.naming.application_insights.name
   location            = var.location
   resource_group_name = var.resource_group_name
   application_type    = "web"
@@ -59,9 +59,29 @@ resource "azurerm_application_insights" "main" {
   tags = var.tags
 }
 
+# Naming module
+module "naming" {
+  source = "../naming"
+  suffix = [var.environment]
+}
+
+resource "azurerm_fabric_capacity" "fabric" {
+  name                = module.naming.fabric_capacity.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  sku {
+    name = "F2"
+    tier = "Fabric"
+  }
+
+  administration_members = var.fabric_admin_members
+  tags                   = var.tags
+}
+
 # Azure Monitor Action Group
 resource "azurerm_monitor_action_group" "main" {
-  name                = "ag-${var.prefix}-${var.environment}"
+  name                = module.naming.monitor_action_group.name
   resource_group_name = var.resource_group_name
   short_name          = "mainaction"
 

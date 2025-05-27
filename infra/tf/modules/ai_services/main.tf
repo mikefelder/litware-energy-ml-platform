@@ -1,6 +1,13 @@
+# Common naming module for consistent naming
+module "naming" {
+  source  = "Azure/naming/azurerm"
+  version = "0.4.0"
+  suffix  = [var.environment]
+}
+
 # Document Intelligence Service
 resource "azurerm_cognitive_account" "document_intelligence" {
-  name                          = "doci-${var.prefix}-${var.environment}"
+  name                          = module.naming.cognitive_account.name
   location                      = var.location
   resource_group_name           = var.resource_group_name
   kind                         = "FormRecognizer"
@@ -17,7 +24,7 @@ resource "azurerm_cognitive_account" "document_intelligence" {
 
 # Azure OpenAI Service
 resource "azurerm_cognitive_account" "openai" {
-  name                          = "oai-${var.prefix}-${var.environment}"
+  name                          = module.naming.cognitive_account.name
   location                      = var.location
   resource_group_name           = var.resource_group_name
   kind                         = "OpenAI"
@@ -34,7 +41,7 @@ resource "azurerm_cognitive_account" "openai" {
 
 # Azure AI Search Service
 resource "azurerm_search_service" "search" {
-  name                          = "srch-${var.prefix}-${var.environment}"
+  name                          = module.naming.search_service.name
   location                      = var.location
   resource_group_name           = var.resource_group_name
   sku                         = "standard"
@@ -46,7 +53,7 @@ resource "azurerm_search_service" "search" {
 
 # Storage Account for AI Services
 resource "azurerm_storage_account" "ai_storage" {
-  name                            = "stlitwareai${var.environment}"
+  name                            = module.naming.storage_account.name
   location                        = var.location
   resource_group_name             = var.resource_group_name
   account_tier                    = "Standard"

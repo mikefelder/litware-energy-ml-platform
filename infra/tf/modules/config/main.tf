@@ -1,9 +1,9 @@
 locals {
   # Resource group naming
-  core_networking_rg_name  = "rg-core-networking"
-  shared_services_rg_name  = "rg-shared-services"
-  ai_ml_foundation_rg_name = "rg-ai-ml-foundation"
-  data_ingestion_rg_name   = "rg-data-ingestion"
+  core_networking_rg_name  = "rg-vignette-core-networking"
+  shared_services_rg_name  = "rg-vignette-shared-services"
+  ai_ml_foundation_rg_name = "rg-vignette-ai-ml-foundation"
+  data_ingestion_rg_name   = "rg-vignette-data-ingestion"
   vignette_pred_maint_name = "rg-vignette-predictive-maintenance"
   vignette_emissions_name  = "rg-vignette-emissions-tracking"
   vignette_genai_name      = "rg-vignette-genai-fieldops"
@@ -28,8 +28,8 @@ output "resource_group_names" {
     data_ingestion   = local.data_ingestion_rg_name
     pred_maint       = local.vignette_pred_maint_name
     emissions        = local.vignette_emissions_name
-    genai           = local.vignette_genai_name
-    trading         = local.vignette_trading_name
+    genai            = local.vignette_genai_name
+    trading          = local.vignette_trading_name
   }
   description = "Map of resource group names"
 }
