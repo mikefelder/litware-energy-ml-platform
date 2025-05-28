@@ -25,22 +25,25 @@ resource "azurerm_machine_learning_workspace" "mlw" {
   tags = var.tags
 }
 
+locals {
+  region_short = substr(replace(lower(var.location), " ", ""), 0, 2)
+}
+
+# Storage Account for ML Workspace
 resource "azurerm_storage_account" "mlstorage" {
-  name                            = module.naming.storage_account.name
+  name                            = "stlitwmlearning${var.environment}${local.region_short}"
   location                        = var.location
   resource_group_name             = var.resource_group_name
   account_tier                    = "Standard"
   account_replication_type        = "GRS"
+  account_kind                    = "StorageV2"
   is_hns_enabled                  = false
-  min_tls_version                 = "TLS1_2"
+
+  public_network_access_enabled   = false
   shared_access_key_enabled       = false
   default_to_oauth_authentication = true
-  public_network_access_enabled   = false
+  cross_tenant_replication_enabled = false
   allow_nested_items_to_be_public = false
-
-  identity {
-    type = "SystemAssigned"
-  }
 
   network_rules {
     default_action             = "Deny"
@@ -49,16 +52,24 @@ resource "azurerm_storage_account" "mlstorage" {
     bypass                     = ["AzureServices"]
   }
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = var.tags
 }
 
+# Container Registry for ML Workspace
 resource "azurerm_container_registry" "mlacr" {
-  name                          = module.naming.container_registry.name
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  sku                           = "Premium"
-  admin_enabled                 = false
+  name                = "crlitwmlprod${local.region_short}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  sku                 = "Premium"
+  admin_enabled       = false
+
   public_network_access_enabled = false
+  export_policy_enabled        = true
+  network_rule_bypass_option   = "AzureServices"
 
   tags = var.tags
 }

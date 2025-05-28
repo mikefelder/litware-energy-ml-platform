@@ -1,25 +1,31 @@
+variable "name" {
+  type        = string
+  description = "Base name for all resources"
+  default     = ""
+}
+
 variable "prefixes" {
-  description = "Application prefix to apply to resources"
   type        = list(string)
+  description = "List of prefixes to use for all resources"
   default     = []
 }
 
 variable "suffixes" {
-  description = "Application suffix to apply to resources"
   type        = list(string)
+  description = "List of suffixes to append to all resources"
   default     = []
 }
 
-variable "random_length" {
-  description = "Length of random string"
-  type        = number
-  default     = 0
+variable "delimiter" {
+  type        = string
+  description = "Delimiter to use between name segments"
+  default     = "-"
 }
 
-variable "separator" {
-  description = "Separator between each elements"
-  type        = string
-  default     = "-"
+variable "random_length" {
+  type        = number
+  description = "Length of random string to use for uniqueness"
+  default     = 4
 }
 
 variable "clean_input" {

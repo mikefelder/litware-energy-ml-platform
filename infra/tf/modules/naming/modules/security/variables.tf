@@ -16,8 +16,8 @@ variable "random_length" {
   default     = 0
 }
 
-variable "separator" {
-  description = "Separator between each elements"
+variable "delimiter" {
+  description = "Delimiter to use between name segments"
   type        = string
   default     = "-"
 }
@@ -41,4 +41,10 @@ variable "name_length_restriction" {
     clean_input = bool
   })
   default = null
+}
+
+variable "name" {
+  type        = string
+  description = "Base name for security resources"
+  default     = ""
 }

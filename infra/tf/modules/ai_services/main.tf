@@ -5,6 +5,10 @@ module "naming" {
   suffix  = [var.environment]
 }
 
+locals {
+  region_short = substr(replace(lower(var.location), " ", ""), 0, 2)
+}
+
 # Document Intelligence Service
 resource "azurerm_cognitive_account" "document_intelligence" {
   name                          = module.naming.cognitive_account.name
@@ -22,38 +26,41 @@ resource "azurerm_cognitive_account" "document_intelligence" {
   }
 }
 
-# Azure OpenAI Service
+# OpenAI Service
 resource "azurerm_cognitive_account" "openai" {
-  name                          = module.naming.cognitive_account.name
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  kind                         = "OpenAI"
-  sku_name                     = "S0"
-  tags                         = var.tags
+  name                = "coglitwmlprod${local.region_short}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  kind                = "OpenAI"
+  sku_name            = "S0"
+  custom_subdomain_name = "oai-litware-prod"
+
   public_network_access_enabled = false
-  custom_subdomain_name        = "oai-${var.prefix}-${var.environment}"
+  local_auth_enabled           = true
 
   network_acls {
-    default_action             = "Deny"
-    ip_rules                  = []
+    default_action = "Deny"
   }
+
+  tags = var.tags
 }
 
-# Azure AI Search Service
+# Cognitive Search Service
 resource "azurerm_search_service" "search" {
-  name                          = module.naming.search_service.name
-  location                      = var.location
-  resource_group_name           = var.resource_group_name
-  sku                         = "standard"
-  partition_count             = 1
-  replica_count               = 1
-  tags                        = var.tags
+  name                = "srchlitwml${var.environment}${local.region_short}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  sku                 = "standard"
+
   public_network_access_enabled = false
+  local_authentication_enabled  = true
+
+  tags = var.tags
 }
 
 # Storage Account for AI Services
 resource "azurerm_storage_account" "ai_storage" {
-  name                            = module.naming.storage_account.name
+  name                            = "stlitwai${var.environment}${local.region_short}"
   location                        = var.location
   resource_group_name             = var.resource_group_name
   account_tier                    = "Standard"

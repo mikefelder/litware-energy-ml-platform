@@ -1,5 +1,9 @@
 # Shared services infrastructure
 
+locals {
+  region_short = substr(replace(lower(var.location), " ", ""), 0, 2)
+}
+
 # Log Analytics Workspace
 resource "azurerm_log_analytics_workspace" "main" {
   name                = module.naming.log_analytics_workspace.name
@@ -12,7 +16,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 # Key Vault
 resource "azurerm_key_vault" "main" {
-  name                = module.naming.key_vault.name
+  name                = "kvlitwml${var.environment}${local.region_short}"
   location            = var.location
   resource_group_name = var.resource_group_name
   tenant_id           = var.tenant_id
@@ -66,7 +70,7 @@ module "naming" {
 }
 
 resource "azurerm_fabric_capacity" "fabric" {
-  name                = module.naming.fabric_capacity.name
+  name                = "fablitwml${var.environment}${local.region_short}"
   location            = var.location
   resource_group_name = var.resource_group_name
 

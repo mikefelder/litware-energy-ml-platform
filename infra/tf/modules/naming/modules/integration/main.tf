@@ -6,8 +6,8 @@ resource "random_string" "main" {
 }
 
 locals {
-  clean_prefix   = var.clean_input ? replace(join(var.separator, var.prefixes), var.regex_replace_chars, "") : join(var.separator, var.prefixes)
-  clean_suffix   = var.clean_input ? replace(join(var.separator, var.suffixes), var.regex_replace_chars, "") : join(var.separator, var.suffixes)
+  clean_prefix   = var.clean_input ? replace(join(var.delimiter, var.prefixes), var.regex_replace_chars, "") : join(var.delimiter, var.prefixes)
+  clean_suffix   = var.clean_input ? replace(join(var.delimiter, var.suffixes), var.regex_replace_chars, "") : join(var.delimiter, var.suffixes)
   random_string  = var.random_length > 0 ? random_string.main[0].result : ""
   
   // Integration resource naming patterns following Azure Cloud Adoption Framework

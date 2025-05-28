@@ -1,18 +1,18 @@
 variable "name" {
   type        = string
-  description = "Base name for compute resources"
+  description = "Base name for cognitive resources"
   default     = ""
 }
 
 variable "prefixes" {
   type        = list(string)
-  description = "List of prefixes to use for compute resources"
+  description = "List of prefixes to use for cognitive resources"
   default     = []
 }
 
 variable "suffixes" {
   type        = list(string)
-  description = "List of suffixes to append to compute resources"
+  description = "List of suffixes to append to cognitive resources"
   default     = []
 }
 
@@ -38,13 +38,4 @@ variable "regex_replace_chars" {
   type        = string
   description = "Regex to replace chars with empty string"
   default     = "/[^a-zA-Z0-9-]/"
-}
-
-variable "name_length_restriction" {
-  description = "Restrict length to a maximum value"
-  type = object({
-    length      = number
-    clean_input = bool
-  })
-  default = null
 }

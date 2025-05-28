@@ -1,29 +1,23 @@
 variable "prefix" {
-  type        = list(string)
-  default     = []
-  description = "It is not recommended that you use prefix by azure you should be using a suffix for your resources."
-}
-
-variable "suffix" {
-  type        = list(string)
-  default     = []
-  description = "It is recommended that you specify a suffix for consistency. please use only lowercase characters when possible"
-}
-
-variable "unique-seed" {
-  description = "Custom value for the random characters to be used"
+  description = "Prefix to be used with all resource names"
   type        = string
   default     = ""
 }
 
+variable "suffix" {
+  description = "Suffix to be appended to all resource names"
+  type        = list(string)
+  default     = []
+}
+
 variable "unique-length" {
-  description = "Max length of the uniqueness suffix to be added"
+  description = "Length of the unique string to be generated"
   type        = number
   default     = 4
 }
 
 variable "unique-include-numbers" {
-  description = "If you want to include numbers in the unique generation"
+  description = "Include numbers in the unique string"
   type        = bool
   default     = true
 }
