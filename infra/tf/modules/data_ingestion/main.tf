@@ -5,19 +5,25 @@ module "naming" {
   suffix  = [var.environment]
 }
 
+locals {
+  region_short = substr(replace(lower(var.location), " ", ""), 0, 2)
+}
+
 # Data Ingestion Infrastructure
 
 # Event Hub Namespace
 resource "azurerm_eventhub_namespace" "main" {
-  name                = module.naming.eventhub_namespace.name
+  name                = "ehnlitwml${var.environment}${local.region_short}"
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "Standard"
   capacity            = 2
 
+  auto_inflate_enabled          = false
   public_network_access_enabled = false
-  minimum_tls_version           = "1.2"
-
+  local_authentication_enabled  = true
+  minimum_tls_version          = "1.2"
+  
   tags = var.tags
 }
 
@@ -31,26 +37,28 @@ resource "azurerm_eventhub" "sensor_data" {
 
 # Data Lake Storage Gen2
 resource "azurerm_storage_account" "datalake" {
-  name                            = module.naming.storage_account.name
+  name                            = "stlitwdl${var.environment}${local.region_short}"
   resource_group_name             = var.resource_group_name
   location                        = var.location
   account_tier                    = "Standard"
   account_replication_type        = "GRS"
+  account_kind                   = "StorageV2"
   is_hns_enabled                  = true
-  shared_access_key_enabled       = false
-  default_to_oauth_authentication = true
   public_network_access_enabled   = false
+  shared_access_key_enabled       = false
   allow_nested_items_to_be_public = false
-
-  identity {
-    type = "SystemAssigned"
-  }
+  default_to_oauth_authentication = true
+  cross_tenant_replication_enabled = false
 
   network_rules {
     default_action             = "Deny"
     ip_rules                   = []
-    virtual_network_subnet_ids = [var.subnet_id]
     bypass                     = ["AzureServices"]
+    virtual_network_subnet_ids = [var.subnet_id]
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = var.tags
@@ -101,37 +109,38 @@ resource "azurerm_private_endpoint" "datalake_dfs" {
 
 # Service Bus Namespace
 resource "azurerm_servicebus_namespace" "main" {
-  name                = module.naming.servicebus_namespace.name
+  name                = "sblitwml${var.environment}${local.region_short}"
   location            = var.location
   resource_group_name = var.resource_group_name
   sku                 = "Premium"
   capacity            = 1
   tags               = var.tags
 
-  premium_messaging_partitions = 1
   public_network_access_enabled = false
-  minimum_tls_version = "1.2"
-  local_auth_enabled = true
+  local_auth_enabled           = true
+  minimum_tls_version         = "1.2"
+  premium_messaging_partitions = 1
 }
 
 # Data Factory
 resource "azurerm_data_factory" "main" {
-  name                   = module.naming.data_factory.name
-  location               = var.location
-  resource_group_name    = var.resource_group_name
+  name                = "adflitwml${var.environment}${local.region_short}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
   public_network_enabled = false
+
+  vsts_configuration {
+    account_name       = var.devops_project
+    branch_name        = "main"
+    project_name       = var.devops_project
+    repository_name    = "data-pipelines"
+    root_folder        = "/"
+    tenant_id          = var.tenant_id
+  }
 
   identity {
     type = "SystemAssigned"
-  }
-
-  vsts_configuration {
-    account_name    = var.devops_project
-    branch_name     = "main"
-    project_name    = var.devops_project
-    repository_name = "data-pipelines"
-    root_folder     = "/"
-    tenant_id       = var.tenant_id
   }
 
   tags = var.tags
