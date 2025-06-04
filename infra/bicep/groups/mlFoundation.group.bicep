@@ -1,0 +1,35 @@
+
+param location string = resourceGroup().location
+
+module naming './modules/naming.bicep' = {
+  name: 'naming-nodeploy'
+}
+
+var locationShorthand = naming.outputs.locationShorthand[location]
+
+var storageAccountName = '${naming.outputs.resourceNaming.storageAccount.prefix}mlfoundation${locationShorthand}'
+module workspaceStorageAccount 'modules/Storage/account.bicep' = {
+  name: 'workspace-storage-deployment'
+  params: {
+    resourceName: storageAccountName
+    location: location
+  }
+}
+
+module workspaceKeyVault 'modules/KeyVault/vaults.bicep' = {
+  name: 'workspace-keyvault-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.keyVault.prefix}-foundation-${locationShorthand}'
+    location: location
+  }
+}
+
+module mlWorkspace 'modules/MachineLearning/workspaces.bicep' = {
+  name: 'mlFoundation-workspace-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.machineLearning.prefix}-foundation-${locationShorthand}'
+    location: location
+    storageAccountId: workspaceStorageAccount.outputs.resourceId
+    keyVaultId: workspaceKeyVault.outputs.resourceId
+  }
+}
