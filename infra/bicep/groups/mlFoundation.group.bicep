@@ -24,8 +24,8 @@ module workspaceKeyVault 'modules/KeyVault/vaults.bicep' = {
   }
 }
 
-module workspaceAnalytics './modules/OperationalInsights/workspaces.bicep' = {
-  name: 'workspace-analytics-deployment'
+module workspaceAnalytics 'modules/OperationalInsights/workspaces.bicep' = {
+  name: 'workspace-foundation-deployment'
   params: {
     resourceName: '${naming.outputs.resourceNaming.logAnalytics.prefix}-foundation-${locationShorthand}'
     location: location
@@ -33,7 +33,7 @@ module workspaceAnalytics './modules/OperationalInsights/workspaces.bicep' = {
 }
 
 module appInsights 'modules/Insights/components.bicep' = {
-  name: 'appinsights-deployment'
+  name: 'appinsights-foundation-deployment'
   params: {
     resourceName: '${naming.outputs.resourceNaming.appInsights.prefix}-foundation-${locationShorthand}'
     workspaceId: workspaceAnalytics.outputs.resourceId
@@ -49,5 +49,13 @@ module mlWorkspace 'modules/MachineLearning/workspaces.bicep' = {
     storageAccountId: workspaceStorageAccount.outputs.resourceId
     keyVaultId: workspaceKeyVault.outputs.resourceId
     appInsightsId: appInsights.outputs.resourceId
+  }
+}
+
+module foundary 'modules/CognitiveServices/accounts.bicep' = {
+  name: 'foundary-foundation-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.foundary.prefix}-foundation-${locationShorthand}'
+    location: location
   }
 }

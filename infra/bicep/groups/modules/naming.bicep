@@ -15,6 +15,18 @@ output resourceNaming object = {
   appInsights: {
     prefix: 'appi'
   }
+  foundary: {
+    prefix: 'foundry'
+  }
+  search: {
+    prefix: 'search'
+  }
+  dataFactory: {
+    prefix: 'adf'
+  }
+  metricAlert: {
+    prefix: 'malrt'
+  }
 }
 
 output locationShorthand object = {

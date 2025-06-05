@@ -35,7 +35,7 @@ resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2025-04-01' 
   }
 }
 
-module workspaceCompute './workspaces/compute..bicep' = {
+module workspaceCompute './workspaces/compute.bicep' = {
   name: 'workspace-compute-deployment'
   params: {
     resourceName: '${resourceName}-compute'
