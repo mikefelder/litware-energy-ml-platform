@@ -9,6 +9,12 @@ output resourceNaming object = {
   keyVault: {
     prefix: 'kv'
   }
+  logAnalytics: {
+    prefix: 'log'
+  }
+  appInsights: {
+    prefix: 'appi'
+  }
 }
 
 output locationShorthand object = {
