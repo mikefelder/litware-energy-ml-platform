@@ -15,28 +15,29 @@ module dataFactory 'modules/DataFactory/factories.bicep' = {
   }
 }
 
-module failedPipelinesMericAlert 'modules/Insights/metricAlerts.bicep' = {
-  name: 'dataFactoryFailedPipelinesMetricAlert-deployment'
-  params: {
-    resourceName: '${naming.outputs.resourceNaming.metricAlert.prefix}-dataprofiling-failed-pipelines'
-    location: location
-    targetResourceId: dataFactory.outputs.resourceId
-    criteriaBlock: {
-      '@odata.type': '#Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
-      allOf: [
-        {
-          name: 'PipelineFailedRuns'
-          metricName: 'FailedPipelineRuns'
-          metricNamespace: 'Microsoft.DataFactory/factories'
-          operator: 'GreaterThan'
-          threshold: 0
-          timeAggregation: 'Total'
-          criterionType: 'StaticThresholdCriterion'
-        }
-      ]
-    }
-  }
-}
+// this needs the factory to run to emit the metric for alerting
+//module failedPipelinesMericAlert 'modules/Insights/metricAlerts.bicep' = {
+//  name: 'dataFactoryFailedPipelinesMetricAlert-deployment'
+//  params: {
+//    resourceName: '${naming.outputs.resourceNaming.metricAlert.prefix}-dataprofiling-failed-pipelines'
+//    location: 'global'
+//    targetResourceId: dataFactory.outputs.resourceId
+//    criteriaBlock: {
+//      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+//      allOf: [
+//        {
+//          name: 'PipelineFailedRuns'
+//          metricName: 'FailedPipelineRuns'
+//          metricNamespace: 'Microsoft.DataFactory/factories'
+//          operator: 'GreaterThan'
+//          threshold: 0
+//          timeAggregation: 'Total'
+//          criterionType: 'StaticThresholdCriterion'
+//        }
+//      ]
+//    }
+//  }
+//}
 
 module workspaceAnalytics 'modules/OperationalInsights/workspaces.bicep' = {
   name: 'workspace-dataprofiling-deployment'
@@ -52,5 +53,16 @@ module appInsights 'modules/Insights/components.bicep' = {
     resourceName: '${naming.outputs.resourceNaming.appInsights.prefix}-dataprofiling-${locationShorthand}'
     workspaceId: workspaceAnalytics.outputs.resourceId
     location: location
+  }
+}
+
+module fabric 'modules/Fabric/capacities.bicep' = {
+  name: 'fabric-dataprofiling-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.fabric.prefix}dataprofiling${locationShorthand}'
+    location: location
+    adminstrationMembersEmailArray: [
+      'admin@MngEnvMCAP331427.onmicrosoft.com'
+    ]
   }
 }

@@ -20,7 +20,9 @@ resource metricAlerts 'Microsoft.Insights/metricAlerts@2018-03-01' = {
     description: 'Metric alert for ${last(split(targetResourceId, '/'))}'
     severity: severityLevel
     enabled: enabled
-    scopes: []
+    scopes: [
+      targetResourceId
+    ]
     evaluationFrequency: evaluationFrequency
     windowSize: windowSize
     criteria: criteriaBlock

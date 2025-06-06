@@ -27,6 +27,21 @@ output resourceNaming object = {
   metricAlert: {
     prefix: 'malrt'
   }
+  containerRegistry: {
+    prefix: 'cr'
+  }
+  userIdentify: {
+    prefix: 'umi'
+  }
+  containerAppEnv: {
+    prefix: 'me'
+  }
+  containerApp: {
+    prefix: 'aca'
+  }
+  fabric: {
+    prefix: 'fab'
+  }
 }
 
 output locationShorthand object = {

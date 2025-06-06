@@ -42,3 +42,17 @@ module dataProfiling 'groups/dataProfiling.group.bicep' = {
   params: {
   }
 }
+
+// Hosting resource group & resources
+resource hostingRg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  name: 'rg-vignette-hosting'
+  location: deployment().location
+}
+
+module hosting 'groups/hosting.group.bicep' = {
+  name: 'hosting-deployment'
+  scope: resourceGroup(hostingRg.name)
+
+  params: {
+  }
+}
