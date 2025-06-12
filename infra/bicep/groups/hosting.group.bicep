@@ -93,7 +93,7 @@ module acaInstance 'modules/App/containerApps.bicep' = {
 module synapse 'modules/Synapse/workspaces.bicep' = {
  name: 'synapse-hosting-deployment'
   params: {
-    resourceName: '${naming.outputs.resourceNaming.fabric.prefix}-hosting-${locationShorthand}'
+    resourceName: '${naming.outputs.resourceNaming.synapse.prefix}-hosting-${locationShorthand}'
     location: location
     synapseAdminUsername: 'synapseadmin'
     synapseAdminPassword: adminPassword
