@@ -1,6 +1,9 @@
 
 targetScope = 'subscription'
 
+@secure()
+param adminPassword string
+
 // foundation resource group & resources
 resource mlrg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-vignette-ai-ml-foundation'
@@ -54,5 +57,6 @@ module hosting 'groups/hosting.group.bicep' = {
   scope: resourceGroup(hostingRg.name)
 
   params: {
+    adminPassword: adminPassword
   }
 }

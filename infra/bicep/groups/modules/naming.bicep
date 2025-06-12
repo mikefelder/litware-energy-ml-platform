@@ -42,6 +42,9 @@ output resourceNaming object = {
   fabric: {
     prefix: 'fab'
   }
+  synapse: {
+    prefix: 'syn'
+  }
 }
 
 output locationShorthand object = {

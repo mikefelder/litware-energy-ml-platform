@@ -1,4 +1,7 @@
 
+@secure()
+param adminPassword string
+
 param location string = resourceGroup().location
 
 module naming 'modules/naming.bicep' = {
@@ -83,5 +86,16 @@ module acaInstance 'modules/App/containerApps.bicep' = {
         image_name: 'nginx'
       }
     ]
+  }
+}
+
+// synapse for data warehousing
+module synapse 'modules/Synapse/workspaces.bicep' = {
+ name: 'synapse-hosting-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.fabric.prefix}-hosting-${locationShorthand}'
+    location: location
+    synapseAdminUsername: 'synapseadmin'
+    synapseAdminPassword: adminPassword
   }
 }
