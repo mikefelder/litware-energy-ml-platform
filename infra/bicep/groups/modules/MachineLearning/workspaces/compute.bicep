@@ -16,6 +16,12 @@ param vmPriority string = 'Dedicated'
 @description('The name of the Azure Machine Learning workspace to which the compute will be added.')
 param vmSize string = 'STANDARD_DS11_V2'
 
+param identityType string
+param userManagedIdentityId string = ''
+
+@allowed(['Linux', 'Windows'])
+param osType string = 'Linux'
+
 resource mlWorkspace 'Microsoft.MachineLearningServices/workspaces@2023-04-01' existing = {
   name: mlStudioResourceName
 }
@@ -25,11 +31,16 @@ resource compute 'Microsoft.MachineLearningServices/workspaces/computes@2023-04-
   location: resourceGroup().location
   parent: mlWorkspace
   identity: {
-    type: 'SystemAssigned'
+    type: identityType
+    userAssignedIdentities: identityType == 'UserAssigned' ? {
+      '${userManagedIdentityId}': {}
+    } : {}
   }
+
   properties: {
     computeType: 'AmlCompute'
     properties: {
+      osType: osType
       scaleSettings: {
         maxNodeCount: maxNodeCount
         minNodeCount: minNodeCount
@@ -40,3 +51,6 @@ resource compute 'Microsoft.MachineLearningServices/workspaces/computes@2023-04-
     }
   }
 }
+
+output resourceId string = compute.id
+output resourceName string = compute.name

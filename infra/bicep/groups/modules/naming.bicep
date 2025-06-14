@@ -30,7 +30,7 @@ output resourceNaming object = {
   containerRegistry: {
     prefix: 'cr'
   }
-  userIdentify: {
+  userIdentity: {
     prefix: 'umi'
   }
   containerAppEnv: {

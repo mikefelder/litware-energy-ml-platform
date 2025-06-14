@@ -7,5 +7,6 @@ resource userAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@
 }
 
 output resourceId string = userAssignedIdentity.id
+output resourceName string = userAssignedIdentity.name
 output principalId string = userAssignedIdentity.properties.principalId
 output clientId string = userAssignedIdentity.properties.clientId

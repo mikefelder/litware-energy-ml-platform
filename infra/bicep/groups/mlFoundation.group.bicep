@@ -1,26 +1,27 @@
 
 param location string = resourceGroup().location
+param foundationIdentityResourceName string
+param foundationIdentityResourceGroupName string = resourceGroup().name
 
 module naming './modules/naming.bicep' = {
   name: 'naming-nodeploy'
 }
 
-var locationShorthand = naming.outputs.locationShorthand[location]
-
-var storageAccountName = '${naming.outputs.resourceNaming.storageAccount.prefix}mlfoundation${locationShorthand}'
-module workspaceStorageAccount 'modules/Storage/account.bicep' = {
-  name: 'workspace-storage-deployment'
-  params: {
-    resourceName: storageAccountName
-    location: location
-  }
+resource foundationIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
+  name: foundationIdentityResourceName
+  scope: resourceGroup(foundationIdentityResourceGroupName)
 }
 
-module workspaceKeyVault 'modules/KeyVault/vaults.bicep' = {
-  name: 'workspace-keyvault-deployment'
+var locationShorthand = naming.outputs.locationShorthand[location]
+module modelRegistry 'modules/ContainerRegistry/registries.bicep' = {
+  name: 'mlFoundation-registry-deployment'
   params: {
-    resourceName: '${naming.outputs.resourceNaming.keyVault.prefix}-foundation-${locationShorthand}'
-    location: location
+    resourceName: '${naming.outputs.resourceNaming.containerRegistry.prefix}foundation${locationShorthand}'
+    acrPushAssignments: [
+      {
+        objectId: foundationIdentity.properties.principalId
+      }
+    ]
   }
 }
 
@@ -41,6 +42,32 @@ module appInsights 'modules/Insights/components.bicep' = {
   }
 }
 
+var storageAccountName = '${naming.outputs.resourceNaming.storageAccount.prefix}mlfoundation${locationShorthand}'
+module workspaceStorageAccount 'modules/Storage/account.bicep' = {
+  name: 'workspace-foundation-storage-deployment'
+  params: {
+    resourceName: storageAccountName
+    blobDataContributorRoleAssignments: [
+      {
+        objectId: foundationIdentity.properties.principalId
+      }
+    ]
+  }
+}
+
+module workspaceKeyVault 'modules/KeyVault/vaults.bicep' = {
+  name: 'workspace-keyvault-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.keyVault.prefix}-foundation-${locationShorthand}'
+    location: location
+    keyVaultSecretsOfficerAssignments: [
+      {
+        objectId: foundationIdentity.properties.principalId
+      }
+    ]
+  }
+}
+
 module mlWorkspace 'modules/MachineLearning/workspaces.bicep' = {
   name: 'mlFoundation-workspace-deployment'
   params: {
@@ -49,13 +76,16 @@ module mlWorkspace 'modules/MachineLearning/workspaces.bicep' = {
     storageAccountId: workspaceStorageAccount.outputs.resourceId
     keyVaultId: workspaceKeyVault.outputs.resourceId
     appInsightsId: appInsights.outputs.resourceId
+    containerRegistryId: modelRegistry.outputs.resourceId
+    identityType: 'UserAssigned'
+    userManagedIdentityId: foundationIdentity.id
   }
 }
-
-module foundary 'modules/CognitiveServices/accounts.bicep' = {
-  name: 'foundary-foundation-deployment'
-  params: {
-    resourceName: '${naming.outputs.resourceNaming.foundary.prefix}-foundation-${locationShorthand}'
-    location: location
-  }
-}
+//
+//module storageContributorRoleAssignment 'modules/Authorization/blobDataContributor.bicep' = {
+//  name: 'foundation-storage-contributor-role-assignment'
+//  params: {
+//    storageAccountName: storageAccountName
+//    objectId: mlWorkspace.outputs.computerPrincipalId
+//  }
+//}

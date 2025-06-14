@@ -1,13 +1,35 @@
 
 targetScope = 'subscription'
 
-@secure()
-param adminPassword string
-
-// foundation resource group & resources
+// resource groups
 resource mlrg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: 'rg-vignette-ai-ml-foundation'
   location: deployment().location
+}
+
+resource identityRg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
+  name: 'rg-vignette-ai-ml-identity'
+  location: deployment().location
+}
+
+// populate resource groups
+module mlIdentity 'groups/mlIdentity.group.bicep' = {
+  name: 'mlIdentity-deployment'
+  scope: resourceGroup(identityRg.name)
+
+  params: {
+  }
+}
+
+// assign user access admin role to the identity resource group
+// we use a scoped module to specifically target the foundation rg
+module userAccessAdminAssign 'groups/modules/Authorization/userAccessAdministrator.bicep' = {
+  name: 'userAccessAdminAssign-deployment'
+  scope: resourceGroup(mlrg.name)
+
+  params: {
+    objectId: mlIdentity.outputs.userAssignedIdentityPrincipalId
+  }
 }
 
 module mlFoundation 'groups/mlFoundation.group.bicep' = {
@@ -15,48 +37,7 @@ module mlFoundation 'groups/mlFoundation.group.bicep' = {
   scope: resourceGroup(mlrg.name)
 
   params: {
-  }
-}
-
-// GenAI FieldOps resource group & resources
-resource genairg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: 'rg-vignette-genai-fieldops'
-  location: deployment().location
-}
-
-module genaiFieldOps 'groups/genaiFieldOps.group.bicep' = {
-  name: 'genaiFieldOps-deployment'
-  scope: resourceGroup(genairg.name)
-
-  params: {    
-  }
-}
-
-// DataProfiling resource group & resources
-resource dataProfilingRg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: 'rg-vignette-data-profiling'
-  location: deployment().location
-}
-
-module dataProfiling 'groups/dataProfiling.group.bicep' = {
-  name: 'dataProfiling-deployment'
-  scope: resourceGroup(dataProfilingRg.name)
-
-  params: {
-  }
-}
-
-// Hosting resource group & resources
-resource hostingRg 'Microsoft.Resources/resourceGroups@2025-04-01' = {
-  name: 'rg-vignette-hosting'
-  location: deployment().location
-}
-
-module hosting 'groups/hosting.group.bicep' = {
-  name: 'hosting-deployment'
-  scope: resourceGroup(hostingRg.name)
-
-  params: {
-    adminPassword: adminPassword
+    foundationIdentityResourceName: mlIdentity.outputs.userAssignedIdentityResourceName
+    foundationIdentityResourceGroupName: identityRg.name
   }
 }

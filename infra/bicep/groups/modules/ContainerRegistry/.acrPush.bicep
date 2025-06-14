@@ -1,6 +1,5 @@
 
 param containerRegistryName string
-param containerRegistryResourceGroupName string = resourceGroup().name
 param objectId string
 
 @allowed(['User', 'Group', 'ServicePrincipal'])
@@ -8,15 +7,14 @@ param principalType string = 'ServicePrincipal'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
   name: containerRegistryName
-  scope: resourceGroup(containerRegistryResourceGroupName)
 }
 
-var acrPullRoleDefinitionValue = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
+var acrPushRoleDefinitionValue = '8311e382-0749-4cb8-b61a-304f252e45ec'
 resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(containerRegistry.id, objectId, acrPullRoleDefinitionValue)
+  name: guid(containerRegistry.id, objectId, acrPushRoleDefinitionValue)
+  scope: containerRegistry
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions/', acrPullRoleDefinitionValue)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions/', acrPushRoleDefinitionValue)
     principalId: objectId
     principalType: principalType
   }
