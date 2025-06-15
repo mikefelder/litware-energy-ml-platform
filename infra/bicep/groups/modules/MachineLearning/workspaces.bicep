@@ -17,6 +17,15 @@ param skuTier string = 'Basic'
 param identityType string = 'SystemAssigned'
 param userManagedIdentityId string = ''
 
+var identityBlock = identityType == 'SystemAssigned' ? {
+  type: 'SystemAssigned'
+} : {
+  type: 'UserAssigned'
+  userAssignedIdentities: {
+    '${userManagedIdentityId}': {}
+  }
+}
+
 resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2025-04-01' = {
   name: resourceName
   location: location
@@ -26,13 +35,7 @@ resource amlWorkspace 'Microsoft.MachineLearningServices/workspaces@2025-04-01' 
     name: skuName
     tier: skuTier
   }
-  identity: {
-    type: identityType
-    userAssignedIdentities: identityType == 'UserAssigned' ? {
-      '${userManagedIdentityId}': {}
-    } : {}
-  }
-  
+  identity: identityBlock
   properties: {
     allowPublicAccessWhenBehindVnet: false
     storageAccount: storageAccountId

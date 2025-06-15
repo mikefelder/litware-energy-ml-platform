@@ -1,15 +1,15 @@
 
 param location string = resourceGroup().location
-param foundationIdentityResourceName string
-param foundationIdentityResourceGroupName string = resourceGroup().name
 
 module naming './modules/naming.bicep' = {
   name: 'naming-nodeploy'
 }
 
-resource foundationIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
-  name: foundationIdentityResourceName
-  scope: resourceGroup(foundationIdentityResourceGroupName)
+module foundationIdentity 'modules/ManagedIdentity/userAssignedIdentities.bicep' = {
+  name: 'mlFoundation-identity-deployment'
+  params: {
+    resourceName: '${naming.outputs.resourceNaming.userIdentity.prefix}-foundation-${locationShorthand}'
+  }
 }
 
 var locationShorthand = naming.outputs.locationShorthand[location]
@@ -19,7 +19,7 @@ module modelRegistry 'modules/ContainerRegistry/registries.bicep' = {
     resourceName: '${naming.outputs.resourceNaming.containerRegistry.prefix}foundation${locationShorthand}'
     acrPushAssignments: [
       {
-        objectId: foundationIdentity.properties.principalId
+        objectId: foundationIdentity.outputs.principalId
       }
     ]
   }
@@ -47,11 +47,7 @@ module workspaceStorageAccount 'modules/Storage/account.bicep' = {
   name: 'workspace-foundation-storage-deployment'
   params: {
     resourceName: storageAccountName
-    blobDataContributorRoleAssignments: [
-      {
-        objectId: foundationIdentity.properties.principalId
-      }
-    ]
+    useSharedKey: true
   }
 }
 
@@ -62,7 +58,7 @@ module workspaceKeyVault 'modules/KeyVault/vaults.bicep' = {
     location: location
     keyVaultSecretsOfficerAssignments: [
       {
-        objectId: foundationIdentity.properties.principalId
+        objectId: foundationIdentity.outputs.principalId
       }
     ]
   }
@@ -77,15 +73,6 @@ module mlWorkspace 'modules/MachineLearning/workspaces.bicep' = {
     keyVaultId: workspaceKeyVault.outputs.resourceId
     appInsightsId: appInsights.outputs.resourceId
     containerRegistryId: modelRegistry.outputs.resourceId
-    identityType: 'UserAssigned'
-    userManagedIdentityId: foundationIdentity.id
+    userManagedIdentityId: foundationIdentity.outputs.resourceId
   }
 }
-//
-//module storageContributorRoleAssignment 'modules/Authorization/blobDataContributor.bicep' = {
-//  name: 'foundation-storage-contributor-role-assignment'
-//  params: {
-//    storageAccountName: storageAccountName
-//    objectId: mlWorkspace.outputs.computerPrincipalId
-//  }
-//}

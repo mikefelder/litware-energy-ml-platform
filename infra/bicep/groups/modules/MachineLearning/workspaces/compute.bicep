@@ -26,16 +26,19 @@ resource mlWorkspace 'Microsoft.MachineLearningServices/workspaces@2023-04-01' e
   name: mlStudioResourceName
 }
 
+var identityBlock = identityType == 'SystemAssigned' ? {
+  type: 'SystemAssigned'
+} : {
+  type: 'UserAssigned'
+  userAssignedIdentities: {
+    '${userManagedIdentityId}': {}
+  }
+}
 resource compute 'Microsoft.MachineLearningServices/workspaces/computes@2023-04-01' = {
   name: resourceName
   location: resourceGroup().location
   parent: mlWorkspace
-  identity: {
-    type: identityType
-    userAssignedIdentities: identityType == 'UserAssigned' ? {
-      '${userManagedIdentityId}': {}
-    } : {}
-  }
+  identity: identityBlock
 
   properties: {
     computeType: 'AmlCompute'
